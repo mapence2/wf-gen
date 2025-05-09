@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Waveform Generator</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+
+<h2>Latent Space Waveform Generator</h2>
+<label>X: <input type="range" id="x_slider" min="-3" max="3" step="0.1" value="0" oninput="updateInput('x')">
+<input type="number" id="x_input" step="0.1" value="0" onchange="updateSlider('x')"></label><br><br>
+
+<label>Y: <input type="range" id="y_slider" min="-3" max="3" step="0.1" value="0" oninput="updateInput('y')">
+<input type="number" id="y_input" step="0.1" value="0" onchange="updateSlider('y')"></label><br><br>
+
+
+
+<div id="plot" style="width: 100%; height: 400px;"></div>
+
+<br>
+<label>Amplitude (V): <input type="number" id="amp_input" step="0.1" value="1.0" onchange="fetchAndPlot()"></label><br>
+<label>Frequency (Hz): <input type="number" id="freq_input" step="0.1" value="1.0" onchange="fetchAndPlot()"></label><br>
+<label>Offset (V): <input type="number" id="offset_input" step="0.1" value="0.0" onchange="fetchAndPlot()"></label><br><br>
+<button onclick="downloadCSV()">Download CSV</button>
+
+<script>
+function updateInput(axis) {
+    document.getElementById(axis + "_input").value = document.getElementById(axis + "_slider").value;
+    fetchAndPlot();
+}
+
+function updateSlider(axis) {
+    document.getElementById(axis + "_slider").value = document.getElementById(axis + "_input").value;
+    fetchAndPlot();
+}
+
+let latestWaveform = [];
+let latestWaveformSingle = [];
+
+function fetchAndPlot() {
+    let x = parseFloat(document.getElementById('x_slider').value);
+    let y = parseFloat(document.getElementById('y_slider').value);
+    let amp = parseFloat(document.getElementById('amp_input').value);
+    let freq = parseFloat(document.getElementById('freq_input').value);
+    let offset = parseFloat(document.getElementById('offset_input').value);
+
+    fetch('/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({x: x, y: y, amp: amp, freq: freq, offset: offset})
+    })
+    .then(response => response.json())
+    .then(data => {
+        latestWaveform = data.wf;          // 3-period version for plot
+        latestWaveformSingle = data.wf_single;  // 1-period version for CSV
+
+        Plotly.newPlot('plot', [{y: latestWaveform, type: 'scatter', mode: 'lines'}], {
+            margin: { t: 10 }
+        });
+    });
+}
+
+window.onload = fetchAndPlot;
+
+
+
+function downloadCSV() {
+    const n = latestWaveformSingle.length;
+    const t = [...Array(n)].map((_, i) => i / n);
+
+    const header = "time,voltage\n";
+    const rows = latestWaveformSingle.map((val, i) => `${t[i]},${val}`).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "waveform.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+</script>
+</body>
+</html>
