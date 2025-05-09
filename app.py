@@ -35,11 +35,12 @@ def generate():
 
     wf = decode(x, y)
     n_samples = len(wf)
-    t = np.linspace(0, 1, n_samples)
+    t = np.linspace(0, 1/freq, n_samples)
+
 
     # Apply transformations
-    wf_single = amp * wf * np.sin(2 * np.pi * freq * t) + offset
-    wf_plot = np.tile(wf, 3)  # Repeat for 3 periods
+    wf_single = amp * wf + offset
+    wf_plot = np.tile(wf_single, 3)  # Repeat for 3 periods
 
     return jsonify(wf=wf_plot.tolist(), wf_single=wf_single.tolist())
 
