@@ -29,20 +29,16 @@ def index():
 def generate():
     data = request.json
     x, y = float(data['x']), float(data['y'])
-    amp = float(data.get('amp', 1.0))
-    freq = float(data.get('freq', 1.0))
-    offset = float(data.get('offset', 0.0))
 
     wf = decode(x, y)
     n_samples = len(wf)
-    t = np.linspace(0, 1/freq, n_samples)
+
 
 
     # Apply transformations
-    wf_single = amp * wf + offset
-    wf_plot = np.tile(wf_single, 3)  # Repeat for 3 periods
+    wf_plot = np.tile(wf, 3)  # Repeat for 3 periods
 
-    return jsonify(wf=wf_plot.tolist(), wf_single=wf_single.tolist())
+    return jsonify(wf=wf_plot.tolist(), wf_single=wf.tolist())
 
 if __name__ == '__main__':
     import os

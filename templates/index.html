@@ -18,9 +18,6 @@
 <div id="plot" style="width: 100%; height: 400px;"></div>
 
 <br>
-<label>Amplitude (V): <input type="number" id="amp_input" step="0.1" value="1.0" onchange="fetchAndPlot()"></label><br>
-<label>Frequency (Hz): <input type="number" id="freq_input" step="0.1" value="1.0" onchange="fetchAndPlot()"></label><br>
-<label>Offset (V): <input type="number" id="offset_input" step="0.1" value="0.0" onchange="fetchAndPlot()"></label><br><br>
 <button onclick="downloadCSV()">Download CSV</button>
 
 <script>
@@ -40,14 +37,10 @@ let latestWaveformSingle = [];
 function fetchAndPlot() {
     let x = parseFloat(document.getElementById('x_slider').value);
     let y = parseFloat(document.getElementById('y_slider').value);
-    let amp = parseFloat(document.getElementById('amp_input').value);
-    let freq = parseFloat(document.getElementById('freq_input').value);
-    let offset = parseFloat(document.getElementById('offset_input').value);
-
     fetch('/generate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({x: x, y: y, amp: amp, freq: freq, offset: offset})
+        body: JSON.stringify({x: x, y: y})
     })
     .then(response => response.json())
     .then(data => {
@@ -68,7 +61,7 @@ function downloadCSV() {
     const n = latestWaveformSingle.length;
     const t = [...Array(n)].map((_, i) => i / n);
 
-    const header = "time,voltage\n";
+    const header = "step,voltage\n";
     const rows = latestWaveformSingle.map((val, i) => `${t[i]},${val}`).join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
 
